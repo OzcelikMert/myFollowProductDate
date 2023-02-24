@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">My FPD</string>
+    <string name="categories">Categories</string>
+    <string name="products">Products</string>
+    <string name="exit">Exit</string>
+    <string name="cancel">Cancel</string>
+    <string name="exitMessageTitle">Exit Message</string>
+    <string name="exitMessage">Are you sure to exit?</string>
+    <string name="back">Back</string>
+    <string name="add">Add</string>
+    <string name="id">id</string>
+    <string name="stockCode">Stock Code</string>
+    <string name="category">Category</string>
+    <string name="expirationDate">Expiration Date</string>
+    <string name="delete">Delete</string>
+    <string name="deleteMessage">Are you sure to delete this item?</string>
+</resources>
