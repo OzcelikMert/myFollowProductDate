@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">My FPD</string>
+    <string name="title">Title</string>
     <string name="categories">Categories</string>
     <string name="products">Products</string>
     <string name="exit">Exit</string>
@@ -7,11 +8,20 @@
     <string name="exitMessageTitle">Exit Message</string>
     <string name="exitMessage">Are you sure to exit?</string>
     <string name="back">Back</string>
+    <string name="okay">Okay</string>
     <string name="add">Add</string>
+    <string name="added">Successfully Added</string>
+    <string name="error">Error</string>
     <string name="id">id</string>
     <string name="stockCode">Stock Code</string>
     <string name="category">Category</string>
     <string name="expirationDate">Expiration Date</string>
     <string name="delete">Delete</string>
+    <string name="deleted">Successfully Deleted</string>
     <string name="deleteMessage">Are you sure to delete this item?</string>
+    <string name="addProduct">Add Product</string>
+    <string name="addCategory">Add Category</string>
+    <string name="itemAdded">The item has been successfully added</string>
+    <string name="itemDeleted">The item has been successfully deleted</string>
+    <string name="wrongOrEmptyError">Please fill in all blank entries or check if they are correct!</string>
 </resources>

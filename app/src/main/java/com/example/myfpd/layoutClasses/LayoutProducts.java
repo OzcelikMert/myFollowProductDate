@@ -1,37 +1,37 @@
 package com.example.myfpd.layoutClasses;
 
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
-import android.os.StrictMode;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.myfpd.Components.ComponentEvents.ComponentEventOnDelete;
 import com.example.myfpd.Components.ComponentProducts;
 import com.example.myfpd.Database.Products.ProductClass;
+import com.example.myfpd.MyLibrary.MyLibraryLayout;
 import com.example.myfpd.MyLibrary.MyLibraryMessage;
 import com.example.myfpd.R;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
 
 public class LayoutProducts extends AppCompatActivity {
     private String getTag() {return "layoutClasses main"; }
-    Button btnProducts, btnCategories;
+    Button btnShowAddProduct, btnBack;
     LinearLayout listProducts;
-    ArrayList<ProductClass> arrayList = new ArrayList<ProductClass>();
-
+    TextView textViewCategory, textViewExpirationDate;
+    ArrayList<ProductClass> arrayListProducts = new ArrayList<ProductClass>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+        MyLibraryLayout.initLayoutPolicies(this);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.products);
@@ -39,24 +39,75 @@ public class LayoutProducts extends AppCompatActivity {
         Objects.requireNonNull(getSupportActionBar()).hide();
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
+        this.listProducts = (LinearLayout) findViewById(R.id.listCategories);
+        this.btnBack = (Button) findViewById(R.id.btnBack);
+        this.btnShowAddProduct = (Button) findViewById(R.id.btnShowAddCategory);
+        this.textViewCategory = (TextView) findViewById(R.id.textViewCategoryTitle);
+        this.textViewExpirationDate = (TextView) findViewById(R.id.textViewExpirationDate);
 
-        this.listProducts = (LinearLayout) findViewById(R.id.listProducts);
-        /*this.btnProducts = (Button) findViewById(R.id.btnProducts);
-        this.btnCategories = (Button) findViewById(R.id.btnCategories);
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyLibraryLayout.ChangeLayout(LayoutProducts.this, LayoutHome.class);
+            }
+        });
 
-        this.btnProducts.setOnClickListener(new View.OnClickListener() {
+        btnShowAddProduct.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyLibraryLayout.ChangeLayout(LayoutProducts.this, LayoutAddProduct.class);
+            }
+        });
+
+        this.textViewCategory.setOnClickListener(new View.OnClickListener() {
+            class ProductComparator implements Comparator<ProductClass> {
+                public int compare(ProductClass p1, ProductClass p2) {
+                    return p1.categoryName.compareTo(p2.categoryName);
+                }
+            }
+
+            class ProductComparatorReverse implements Comparator<ProductClass> {
+                public int compare(ProductClass p1, ProductClass p2) {
+                    return p2.categoryName.compareTo(p1.categoryName);
+                }
+            }
+
             @Override
             public void onClick(View view) {
-                changeLayout(com.example.myfpd.Components.Products.class);
+                textViewCategory.setTag(textViewCategory.getTag().toString().equals("desc") ? "asc" : "desc");
+                Collections.sort(arrayListProducts, textViewCategory.getTag().toString().equals("asc") ? new ProductComparator() : new ProductComparatorReverse());
+                setItems();
             }
-        });*/
+        });
 
+        this.textViewExpirationDate.setOnClickListener(new View.OnClickListener() {
+            class ProductComparator implements Comparator<ProductClass> {
+                public int compare(ProductClass p1, ProductClass p2) {
+                    return p1.expirationDate.compareTo(p2.expirationDate);
+                }
+            }
+
+            class ProductComparatorReverse implements Comparator<ProductClass> {
+                public int compare(ProductClass p1, ProductClass p2) {
+                    return p2.expirationDate.compareTo(p1.expirationDate);
+                }
+            }
+
+            @Override
+            public void onClick(View view) {
+                textViewExpirationDate.setTag(textViewExpirationDate.getTag().toString().equals("desc") ? "asc" : "desc");
+                Collections.sort(arrayListProducts, textViewExpirationDate.getTag().toString().equals("asc") ? new ProductComparator() : new ProductComparatorReverse());
+                setItems();
+            }
+        });
+
+        this.getItems();
         this.setItems();
     }
 
     private void setItems(){
-        this.getItems();
-        for (ProductClass item : this.arrayList) {
+        this.listProducts.removeAllViews();
+        for (ProductClass item : this.arrayListProducts) {
             new ComponentProducts(
                     this,
                     this.listProducts,
@@ -78,7 +129,30 @@ public class LayoutProducts extends AppCompatActivity {
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            finish();
+                                            for (int i = 0; i < arrayListProducts.size(); i++) {
+                                                ProductClass findItem = arrayListProducts.get(i);
+                                                if (findItem.id == data.id) {
+                                                    arrayListProducts.remove(i);
+                                                    setItems();
+                                                    message.GetAlertDialog(LayoutProducts.this,
+                                                            getString(R.string.deleted),
+                                                            getString(R.string.itemDeleted),
+                                                            false,
+                                                            true,
+                                                            getString(R.string.okay),
+                                                            new DialogInterface.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(DialogInterface dialog, int which) {
+
+                                                                }
+                                                            },
+                                                            false,
+                                                            null,
+                                                            null
+                                                    );
+                                                    break;
+                                                }
+                                            }
                                         }
                                     },
                                     true,
@@ -96,23 +170,17 @@ public class LayoutProducts extends AppCompatActivity {
     }
 
     private void getItems() {
-        this.arrayList.add(new ProductClass(1, "123Qwe123", new Date(), "Coca Cola", 1));
-        this.arrayList.add(new ProductClass(2, "234234", new Date(), "Fanta", 2));
-        this.arrayList.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
-        this.arrayList.add(new ProductClass(4, "345345wer", new Date(), "Le Cola", 4));
-        this.arrayList.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
-        this.arrayList.add(new ProductClass(4, "345345wer", new Date(), "Le Cola", 4));
-        this.arrayList.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
-        this.arrayList.add(new ProductClass(4, "345345wer", new Date(), "Le Cola", 4));
-        this.arrayList.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
-        this.arrayList.add(new ProductClass(4, "345345wer", new Date(), "Le Cola", 4));
-        this.arrayList.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
-        this.arrayList.add(new ProductClass(4, "345345wer", new Date(), "Le Cola", 4));
-    }
-
-    private void changeLayout(Class layout) {
-        Intent intent = new Intent(LayoutProducts.this, layout);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+        this.arrayListProducts.add(new ProductClass(1, "123Qwe123", new Date(), "Coca Cola", 1));
+        this.arrayListProducts.add(new ProductClass(2, "234234", new Date(), "Fanta", 2));
+        this.arrayListProducts.add(new ProductClass(3, "1ewrwer", new Date(), "Sprite", 3));
+        this.arrayListProducts.add(new ProductClass(4, "345345wer", new Date("06/01/2021"), "Le Cola", 4));
+        this.arrayListProducts.add(new ProductClass(5, "1ewrwer", new Date(), "Sprite", 3));
+        this.arrayListProducts.add(new ProductClass(6, "345345wer", new Date(), "Le Cola", 4));
+        this.arrayListProducts.add(new ProductClass(7, "1ewrwer", new Date(), "Sprite", 3));
+        this.arrayListProducts.add(new ProductClass(8, "345345wer", new Date(), "Le Cola", 4));
+        this.arrayListProducts.add(new ProductClass(9, "1ewrwer", new Date(), "Sprite", 3));
+        this.arrayListProducts.add(new ProductClass(10, "345345wer", new Date(), "Le Cola", 4));
+        this.arrayListProducts.add(new ProductClass(11, "1ewrwer", new Date(), "Sprite", 3));
+        this.arrayListProducts.add(new ProductClass(12, "345345wer", new Date(), "Le Cola", 4));
     }
 }

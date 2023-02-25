@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/themeBG"
-    tools:context=".layoutClasses.LayoutProducts">
+    tools:context=".layoutClasses.LayoutCategories">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -58,27 +58,8 @@
                     android:paddingStart="10dp">
 
                     <TextView
-                        android:id="@+id/textView"
-                        android:layout_width="150dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/stockCode"
-                        android:textAlignment="textStart"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/textViewExpirationDate"
-                        android:layout_width="120dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:tag="asc"
-                        android:text="@string/expirationDate"
-                        android:textAlignment="textStart"
-                        android:textStyle="bold" />
-
-                    <TextView
                         android:id="@+id/textViewCategoryTitle"
-                        android:layout_width="150dp"
+                        android:layout_width="250dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:tag="asc"

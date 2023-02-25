@@ -2,14 +2,12 @@ package com.example.myfpd.layoutClasses;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import com.example.myfpd.MyLibrary.MyLibraryLayout;
 import com.example.myfpd.MyLibrary.MyLibraryMessage;
@@ -23,9 +21,7 @@ public class LayoutHome extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+        MyLibraryLayout.initLayoutPolicies(this);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home);
@@ -40,6 +36,13 @@ public class LayoutHome extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 MyLibraryLayout.ChangeLayout(LayoutHome.this, LayoutProducts.class);
+            }
+        });
+
+        this.btnCategories.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MyLibraryLayout.ChangeLayout(LayoutHome.this, LayoutCategories.class);
             }
         });
     }

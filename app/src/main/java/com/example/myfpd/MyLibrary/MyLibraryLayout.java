@@ -2,7 +2,10 @@ package com.example.myfpd.MyLibrary;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.StrictMode;
 import android.util.TypedValue;
+
+import androidx.appcompat.app.AppCompatDelegate;
 
 public class MyLibraryLayout {
     /* Change Layout */
@@ -14,5 +17,10 @@ public class MyLibraryLayout {
     /* end Change Layout */
     public static int convertPixelToDP(Context context, int pixel) {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, pixel, context.getResources().getDisplayMetrics());
+    }
+    public static void initLayoutPolicies(Context context) {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 }

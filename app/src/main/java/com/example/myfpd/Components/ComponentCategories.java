@@ -10,40 +10,26 @@ import android.widget.TextView;
 
 import com.example.myfpd.Components.ComponentEvents.ComponentEventOnDelete;
 import com.example.myfpd.MyLibrary.MyLibraryLayout;
-import com.example.myfpd.MyLibrary.MyLibraryVariable;
 import com.example.myfpd.R;
 
-import java.util.Date;
-
-public class ComponentProducts {
+public class ComponentCategories {
     private Context context;
     public long id;
-    public String stockCode;
-    public Date expirationDate;
-    public String categoryName;
-    public long categoryId;
+    public String title;
 
-    public ComponentProducts(
+    public ComponentCategories(
             Context context,
             LinearLayout linearLayout,
             long id,
-            String stockCode,
-            Date expirationDate,
-            String categoryName,
-            long categoryId,
-            ComponentEventOnDelete<ComponentProducts> onDelete
+            String title,
+            ComponentEventOnDelete<ComponentCategories> onDelete
     ) {
         this.context = context;
         this.id = id;
-        this.stockCode = stockCode;
-        this.expirationDate = expirationDate;
-        this.categoryName = categoryName;
-        this.categoryId = categoryId;
+        this.title = title;
 
         LinearLayout elementLinearLayoutMain = this.elementLinearLayoutMain();
-        elementLinearLayoutMain.addView(this.elementStockCode());
-        elementLinearLayoutMain.addView(this.elementExpirationDate());
-        elementLinearLayoutMain.addView(this.elementCategoryName());
+        elementLinearLayoutMain.addView(this.elementTitle());
         elementLinearLayoutMain.addView(this.elementDelete(onDelete));
 
         linearLayout.addView(elementLinearLayoutMain);
@@ -60,28 +46,14 @@ public class ComponentProducts {
         return linearLayoutMain;
     }
 
-    private TextView elementStockCode() {
+    private TextView elementTitle() {
         TextView textView = new TextView(this.context);
-        textView.setText(this.stockCode);
-        textView.setMinWidth(MyLibraryLayout.convertPixelToDP(this.context, 150));
+        textView.setText(this.title);
+        textView.setMinWidth(MyLibraryLayout.convertPixelToDP(this.context, 250));
         return textView;
     }
 
-    private TextView elementExpirationDate() {
-        TextView textView = new TextView(this.context);
-        textView.setText(MyLibraryVariable.convertDateFormat(this.expirationDate, null));
-        textView.setMinWidth(MyLibraryLayout.convertPixelToDP(this.context, 120));
-        return textView;
-    }
-
-    private TextView elementCategoryName() {
-        TextView textView = new TextView(this.context);
-        textView.setText(this.categoryName);
-        textView.setMinWidth(MyLibraryLayout.convertPixelToDP(this.context, 150));
-        return textView;
-    }
-
-    private Button elementDelete(ComponentEventOnDelete<ComponentProducts> componentEvent) {
+    private Button elementDelete(ComponentEventOnDelete<ComponentCategories> componentEvent) {
         Button button = new Button(this.context);
         button.setText(R.string.delete);
         button.setBackgroundColor(Color.rgb(223 ,48, 121));
@@ -89,7 +61,7 @@ public class ComponentProducts {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                componentEvent.onDelete(ComponentProducts.this);
+                componentEvent.onDelete(ComponentCategories.this);
             }
         });
         return button;

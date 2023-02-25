@@ -15,6 +15,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:largeHeap="true"
         android:theme="@style/Theme.MyFPD"
         android:fullBackupContent="@xml/backup_descriptor">
         <activity android:name=".layoutClasses.LayoutHome" android:label="@string/app_name" android:screenOrientation="fullSensor"
@@ -27,6 +28,9 @@
         </activity>
 
         <activity android:name=".layoutClasses.LayoutProducts" />
+        <activity android:name=".layoutClasses.LayoutAddProduct" />
+        <activity android:name=".layoutClasses.LayoutCategories" />
+        <activity android:name=".layoutClasses.LayoutAddCategory" />
     </application>
 
 </manifest>
