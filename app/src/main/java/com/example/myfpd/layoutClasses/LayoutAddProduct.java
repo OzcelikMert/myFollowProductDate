@@ -1,7 +1,11 @@
 package com.example.myfpd.layoutClasses;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -13,7 +17,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myfpd.Database.Categories.CategoryClass;
+import com.example.myfpd.Database.DatabaseInit;
+import com.example.myfpd.Database.Tables.Categories.CategoryClass;
 import com.example.myfpd.MyLibrary.MyLibraryLayout;
 import com.example.myfpd.MyLibrary.MyLibraryMessage;
 import com.example.myfpd.MyLibrary.MyLibraryVariable;
@@ -24,7 +29,9 @@ import java.util.Date;
 import java.util.Objects;
 
 public class LayoutAddProduct extends AppCompatActivity {
-    private String getTag() {return "layoutClasses main"; }
+    private String getTag() {
+        return "layoutClasses main";
+    }
 
 
     Button btnAddProduct, btnCancel;
@@ -55,11 +62,11 @@ public class LayoutAddProduct extends AppCompatActivity {
             public void onClick(View view) {
                 MyLibraryMessage message = new MyLibraryMessage();
 
-                if(
+                if (
                         MyLibraryVariable.ClearVar(inputStockCode.getText(), "normal").toString().length() == 0 ||
-                        arrayListCategories.isEmpty() ||
-                        !MyLibraryVariable.isValidDateFormat(inputExpirationDate.getText().toString())
-                ){
+                                arrayListCategories.isEmpty() ||
+                                !MyLibraryVariable.isValidDateFormat(inputExpirationDate.getText().toString())
+                ) {
                     message.GetAlertDialog(LayoutAddProduct.this,
                             getString(R.string.error),
                             getString(R.string.wrongOrEmptyError),
@@ -76,26 +83,11 @@ public class LayoutAddProduct extends AppCompatActivity {
                             null,
                             null
                     );
-                }else {
-                    inputStockCode.setText("");
-                    inputExpirationDate.setText(MyLibraryVariable.convertDateFormat(new Date(), null));
-                    inputCategory.setSelection(0);
-
-                    message.GetAlertDialog(LayoutAddProduct.this,
-                            getString(R.string.added),
-                            getString(R.string.itemAdded),
-                            false,
-                            true,
-                            getString(R.string.okay),
-                            new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-
-                                }
-                            },
-                            false,
-                            null,
-                            null
+                } else {
+                    new AddProductAsync().execute(
+                            inputStockCode.getText().toString(),
+                            inputExpirationDate.getText().toString(),
+                            inputCategory.getSelectedView().getTag().toString()
                     );
                 }
             }
@@ -108,19 +100,10 @@ public class LayoutAddProduct extends AppCompatActivity {
             }
         });
 
-        this.getCategories();
+        new InitPageAsync().execute();
     }
 
-    private void getCategories() {
-        this.arrayListCategories.add(new CategoryClass(1, "Coca Cola"));
-        this.arrayListCategories.add(new CategoryClass(2, "Fanta"));
-        this.arrayListCategories.add(new CategoryClass(3, "Sprite"));
-        this.arrayListCategories.add(new CategoryClass(4, "Lipton"));
-        this.arrayListCategories.add(new CategoryClass(3, "Doritos"));
-        this.arrayListCategories.add(new CategoryClass(4, "Patso"));
-        this.arrayListCategories.add(new CategoryClass(3, "Eti Cikolata Gofret (250g)"));
-
-
+    private void setCategories() {
         ArrayAdapter<CategoryClass> adapter = new ArrayAdapter<CategoryClass>(this, android.R.layout.simple_spinner_dropdown_item, this.arrayListCategories) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
@@ -142,5 +125,140 @@ public class LayoutAddProduct extends AppCompatActivity {
         };
 
         this.inputCategory.setAdapter(adapter);
+    }
+
+    private void getCategories() {
+        DatabaseInit db = new DatabaseInit(LayoutAddProduct.this);
+        Cursor resData = db.getTableCategories().onSelect();
+        while (resData.moveToNext()) {
+            arrayListCategories.add(new CategoryClass(
+                            resData.getLong(0),
+                            resData.getString(1)
+                    )
+            );
+        }
+    }
+
+
+    private class InitPageAsync extends AsyncTask<String, Void, Void> {
+
+        ProgressDialog progressDialog = new ProgressDialog(new ContextThemeWrapper(LayoutAddProduct.this, R.style.Theme_AppCompat_DayNight_Dialog));
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.waiting));
+            progressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... values) {
+            try {
+                getCategories();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setCategories();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
+
+    boolean isItemAdded = false;
+    private class AddProductAsync extends AsyncTask<String, Void, Void> {
+
+        ProgressDialog progressDialog = new ProgressDialog(new ContextThemeWrapper(LayoutAddProduct.this, R.style.Theme_AppCompat_DayNight_Dialog));
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.waiting));
+            progressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... values) {
+            try {
+                DatabaseInit db = new DatabaseInit(LayoutAddProduct.this);
+
+                Cursor resultCheck = db.getTableProducts().onSelectWithStockCode(values[0]);
+                if(resultCheck.getCount() == 0){
+                    db.getTableProducts().onInsert(
+                            values[0],
+                            values[1],
+                            Long.parseLong(values[2])
+                    );
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            inputStockCode.setText("");
+                            inputExpirationDate.setText(MyLibraryVariable.convertDateFormat(new Date(), null));
+                            inputCategory.setSelection(0);
+                        }
+                    });
+
+                    isItemAdded = true;
+                }else {
+                    isItemAdded = false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressDialog.dismiss();
+            progressDialog = null;
+            MyLibraryMessage message = new MyLibraryMessage();
+            if(isItemAdded) {
+                message.GetAlertDialog(LayoutAddProduct.this,
+                        getString(R.string.added),
+                        getString(R.string.itemAdded),
+                        false,
+                        true,
+                        getString(R.string.okay),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        },
+                        false,
+                        null,
+                        null
+                );
+            }else {
+                message.GetAlertDialog(LayoutAddProduct.this,
+                        getString(R.string.error),
+                        getString(R.string.itemAvailable),
+                        false,
+                        true,
+                        getString(R.string.okay),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                            }
+                        },
+                        false,
+                        null,
+                        null
+                );
+            }
+        }
     }
 }

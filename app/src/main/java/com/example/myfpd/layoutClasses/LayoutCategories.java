@@ -1,18 +1,26 @@
 package com.example.myfpd.layoutClasses;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.myfpd.Components.ComponentCategories;
 import com.example.myfpd.Components.ComponentEvents.ComponentEventOnDelete;
-import com.example.myfpd.Database.Categories.CategoryClass;
+import com.example.myfpd.Components.ComponentEvents.ComponentPaginationEventOnClick;
+import com.example.myfpd.Components.ComponentPagination;
+import com.example.myfpd.Database.DatabaseInit;
+import com.example.myfpd.Database.Tables.Categories.CategoryClass;
 import com.example.myfpd.MyLibrary.MyLibraryLayout;
 import com.example.myfpd.MyLibrary.MyLibraryMessage;
 import com.example.myfpd.R;
@@ -25,9 +33,13 @@ import java.util.Objects;
 public class LayoutCategories extends AppCompatActivity {
     private String getTag() {return "layoutClasses main"; }
     Button btnShowAddCategory, btnBack;
-    LinearLayout listCategories;
+    LinearLayout listCategories, listPaginationCategories;
     TextView textViewCategoryTitle;
+    ScrollView scrollViewCategoriesPage;
     ArrayList<CategoryClass> arrayListCategories = new ArrayList<CategoryClass>();
+    int currentPage = 1;
+    int itemShowCount = 10;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         MyLibraryLayout.initLayoutPolicies(this);
@@ -39,9 +51,11 @@ public class LayoutCategories extends AppCompatActivity {
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         this.listCategories = (LinearLayout) findViewById(R.id.listCategories);
+        this.listPaginationCategories = (LinearLayout) findViewById(R.id.listPaginationCategories);
         this.btnBack = (Button) findViewById(R.id.btnBack);
         this.btnShowAddCategory = (Button) findViewById(R.id.btnShowAddCategory);
         this.textViewCategoryTitle = (TextView) findViewById(R.id.textViewCategoryTitle);
+        this.scrollViewCategoriesPage = (ScrollView) findViewById(R.id.scrollViewCategoriesPage);
 
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,13 +92,16 @@ public class LayoutCategories extends AppCompatActivity {
             }
         });
 
-        this.getItems();
-        this.setItems();
+        new InitPageAsync().execute();
     }
 
     private void setItems(){
         this.listCategories.removeAllViews();
-        for (CategoryClass item : this.arrayListCategories) {
+        int startIndex = (currentPage - 1) * itemShowCount;
+        int toIndex = startIndex + itemShowCount;
+        toIndex = Math.min(arrayListCategories.size(), toIndex);
+        ArrayList<CategoryClass> subList = new ArrayList<CategoryClass>(arrayListCategories.subList(startIndex, toIndex));
+        for (CategoryClass item : subList) {
             new ComponentCategories(
                     this,
                     this.listCategories,
@@ -103,30 +120,7 @@ public class LayoutCategories extends AppCompatActivity {
                                     new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            for (int i = 0; i < arrayListCategories.size(); i++) {
-                                                CategoryClass findItem = arrayListCategories.get(i);
-                                                if (findItem.id == data.id) {
-                                                    arrayListCategories.remove(i);
-                                                    setItems();
-                                                    message.GetAlertDialog(LayoutCategories.this,
-                                                            getString(R.string.deleted),
-                                                            getString(R.string.itemDeleted),
-                                                            false,
-                                                            true,
-                                                            getString(R.string.okay),
-                                                            new DialogInterface.OnClickListener() {
-                                                                @Override
-                                                                public void onClick(DialogInterface dialog, int which) {
-
-                                                                }
-                                                            },
-                                                            false,
-                                                            null,
-                                                            null
-                                                    );
-                                                    break;
-                                                }
-                                            }
+                                            new DeleteCategoryAsync().execute(item.id);
                                         }
                                     },
                                     true,
@@ -144,12 +138,142 @@ public class LayoutCategories extends AppCompatActivity {
     }
 
     private void getItems() {
-        this.arrayListCategories.add(new CategoryClass(1, "Fanta"));
-        this.arrayListCategories.add(new CategoryClass(2, "Coca Cola"));
-        this.arrayListCategories.add(new CategoryClass(3, "Sprite"));
-        this.arrayListCategories.add(new CategoryClass(4, "Ice Tea"));
-        this.arrayListCategories.add(new CategoryClass(5, "Doritos"));
-        this.arrayListCategories.add(new CategoryClass(6, "Patso"));
-        this.arrayListCategories.add(new CategoryClass(7, "Lays"));
+        DatabaseInit db = new DatabaseInit(LayoutCategories.this);
+        Cursor resData = db.getTableCategories().onSelect();
+        while (resData.moveToNext()) {
+            arrayListCategories.add(new CategoryClass(
+                            resData.getLong(0),
+                            resData.getString(1)
+                    )
+            );
+        }
+    }
+
+    private void setPaginationItems() {
+        int arrayCount = arrayListCategories.size() == 0 ? 1 : arrayListCategories.size();
+        int maxPage = (int)Math.ceil((double) arrayCount / itemShowCount);
+        listPaginationCategories.removeAllViews();
+
+        new ComponentPagination(
+                this,
+                this.listPaginationCategories,
+                maxPage,
+                this.currentPage,
+                new ComponentPaginationEventOnClick() {
+                    @Override
+                    public void onClick(int page) {
+                        currentPage = page;
+                        setItems();
+                        setPaginationItems();
+                        scrollViewCategoriesPage.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                scrollViewCategoriesPage.fullScroll(ScrollView.FOCUS_UP);
+                            }
+                        });
+                    }
+                }
+        );
+    }
+
+    private class InitPageAsync extends AsyncTask<String, Void, Void> {
+
+        ProgressDialog progressDialog = new ProgressDialog(new ContextThemeWrapper(LayoutCategories.this, R.style.Theme_AppCompat_DayNight_Dialog));
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.waiting));
+            progressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(String... values) {
+            try {
+                getItems();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setItems();
+                        setPaginationItems();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
+
+    private class DeleteCategoryAsync extends AsyncTask<Long, Void, Void> {
+
+        ProgressDialog progressDialog = new ProgressDialog(new ContextThemeWrapper(LayoutCategories.this, R.style.Theme_AppCompat_DayNight_Dialog));
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog.setCancelable(false);
+            progressDialog.setMessage(getString(R.string.waiting));
+            progressDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Long... values) {
+            try {
+                DatabaseInit db = new DatabaseInit(LayoutCategories.this);
+                for (long value : values) {
+                    for (int i = 0; i < arrayListCategories.size(); i++) {
+                        CategoryClass findItem = arrayListCategories.get(i);
+                        if (findItem.id == value) {
+                            db.getTableCategories().onDelete(String.valueOf(value));
+                            db.getTableProducts().onDelete(null, String.valueOf(value));
+                            arrayListCategories.remove(i);
+                            break;
+                        }
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        setItems();
+                        setPaginationItems();
+                    }
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            progressDialog.dismiss();
+            progressDialog = null;
+            MyLibraryMessage message = new MyLibraryMessage();
+            message.GetAlertDialog(LayoutCategories.this,
+                    getString(R.string.deleted),
+                    getString(R.string.itemDeleted),
+                    false,
+                    true,
+                    getString(R.string.okay),
+                    new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    },
+                    false,
+                    null,
+                    null
+            );
+        }
     }
 }

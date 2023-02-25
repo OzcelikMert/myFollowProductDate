@@ -1,4 +1,4 @@
-package com.example.myfpd.Database.Categories;
+package com.example.myfpd.Database.Tables.Categories;
 
 public class CategoryClass {
     public long id;

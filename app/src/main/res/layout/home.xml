@@ -32,5 +32,12 @@
             android:layout_height="wrap_content"
             android:text="@string/categories"
             tools:layout_marginTop="15dp" />
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            app:srcCompat="@mipmap/fpd_text_round" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

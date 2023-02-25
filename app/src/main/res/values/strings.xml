@@ -24,4 +24,6 @@
     <string name="itemAdded">The item has been successfully added</string>
     <string name="itemDeleted">The item has been successfully deleted</string>
     <string name="wrongOrEmptyError">Please fill in all blank entries or check if they are correct!</string>
+    <string name="itemAvailable">There is a item in this information, please check the information again!</string>
+    <string name="waiting">Waiting&#8230;</string>
 </resources>

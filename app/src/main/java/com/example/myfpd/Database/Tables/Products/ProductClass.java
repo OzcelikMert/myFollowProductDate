@@ -1,4 +1,4 @@
-package com.example.myfpd.Database.Products;
+package com.example.myfpd.Database.Tables.Products;
 
 import java.util.Date;
 
